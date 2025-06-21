@@ -1,0 +1,164 @@
+﻿<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>ジョジョ風！10問クイズ</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      padding: 30px;
+      background: #f5f5f5;
+    }
+    .question-box, .answer-box, .result-box {
+      margin-bottom: 20px;
+    }
+    .answer-box, .result-box {
+      display: none;
+    }
+    button {
+      margin: 5px;
+      padding: 10px 20px;
+      font-size: 16px;
+    }
+    table {
+      margin: 20px auto;
+      border-collapse: collapse;
+    }
+    td, th {
+      border: 1px solid #ccc;
+      padding: 8px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>ジョジョ風！10問クイズ</h1>
+
+  <div class="question-box">
+    <div id="question">問題を読み込み中...</div>
+    <button onclick="showAnswer()">答えを見る</button>
+  </div>
+
+  <div class="answer-box">
+    <div id="answer">答え</div>
+    <button onclick="submitAnswer(true)">正解</button>
+    <button onclick="submitAnswer(false)">不正解</button>
+  </div>
+
+  <div class="result-box" id="resultBox">
+    <h2>クイズ終了！</h2>
+    <p id="scoreText"></p>
+    <p id="commentText" style="font-weight: bold; font-size: 1.2em;"></p>
+    <h3>解答一覧</h3>
+    <table id="resultTable">
+      <tr><th>問題</th><th>答え</th><th>結果</th></tr>
+    </table>
+    <button onclick="restartQuiz()">最初に戻る</button>
+  </div>
+
+  <script>
+    const quizData = [
+      { question: "日本の首都は？", answer: "東京" },
+      { question: "富士山の標高は？", answer: "約3,776メートル" },
+      { question: "日本の通貨は？", answer: "円" },
+      { question: "サッカーで手を使える選手は？", answer: "ゴールキーパー" },
+      { question: "1年は何か月？", answer: "12か月" },
+      { question: "水は化学式で？", answer: "H2O" },
+      { question: "日の出の方角は？", answer: "東" },
+      { question: "五輪の輪の数は？", answer: "5つ" },
+      { question: "ひらがなは何文字？", answer: "46文字" },
+      { question: "世界一人口が多い国は？", answer: "中国" },
+    ];
+
+    let current = 0;
+    let score = 0;
+    let results = [];
+    let shuffledQuiz = [];
+
+    function shuffleArray(array) {
+      const copy = [...array];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    function loadQuestion() {
+      document.querySelector('.result-box').style.display = 'none';
+      document.querySelector('.answer-box').style.display = 'none';
+      document.querySelector('.question-box').style.display = 'block';
+      document.getElementById('question').textContent = shuffledQuiz[current].question;
+    }
+
+    function showAnswer() {
+      document.querySelector('.answer-box').style.display = 'block';
+      document.getElementById('answer').textContent = "答え: " + shuffledQuiz[current].answer;
+    }
+
+    function submitAnswer(isCorrect) {
+      if (isCorrect) score++;
+      results.push({
+        question: shuffledQuiz[current].question,
+        answer: shuffledQuiz[current].answer,
+        correct: isCorrect
+      });
+      current++;
+      if (current < shuffledQuiz.length) {
+        loadQuestion();
+      } else {
+        showResult();
+      }
+      document.querySelector('.answer-box').style.display = 'none';
+    }
+
+    function getJojoComment(scorePercent) {
+      if (scorePercent < 50)
+        return '<span style="color:red;font-weight:bold;">「オレにはわかる……この点数……<strong>キサマは“平部員に決定ッ！！”</strong>だァァァ！」</span>';
+      if (scorePercent < 60)
+        return '<span style="color:orange;font-weight:bold;">「このままだと……<strong>“平部員になってしまうかも……”</strong>という運命に抗えないぞッ！」</span>';
+      if (scorePercent < 70)
+        return '<span style="color:gold;font-weight:bold;">「クッ……惜しいッ！その点数……<strong>“副部長までもう少しッ！”</strong>だとォォ！？」</span>';
+      if (scorePercent < 80)
+        return '<span style="color:green;font-weight:bold;">「ムウゥ……見えてきたな……<strong>“もうすぐ副部長！？”</strong>ってヤツがよォ！！」</span>';
+      if (scorePercent < 90)
+        return '<span style="color:blue;font-weight:bold;">「やるじゃあねぇか……キサマこそが<strong>“副部長に相応しい男ッ！”</strong>だッ！！」</span>';
+      return '<span style="color:purple;font-weight:bold;">「フハハハハッ！見たかァァ！！<strong>“貴様こそ、真の部長ッ！！”</strong>ってワケだッ！！」</span>';
+    }
+
+    function showResult() {
+      const percent = (score / shuffledQuiz.length) * 100;
+      document.getElementById('scoreText').textContent = `あなたの得点は ${score * 10} 点です！（${score} / ${shuffledQuiz.length}問）`;
+      document.getElementById('commentText').innerHTML = getJojoComment(percent);
+
+      const table = document.getElementById('resultTable');
+      table.innerHTML = '<tr><th>問題</th><th>答え</th><th>結果</th></tr>';
+      results.forEach(result => {
+        const row = table.insertRow();
+        row.insertCell(0).textContent = result.question;
+        row.insertCell(1).textContent = result.answer;
+        const resultCell = row.insertCell(2);
+        resultCell.textContent = result.correct ? "正解" : "不正解";
+        resultCell.style.color = result.correct ? "green" : "red";
+      });
+
+      document.querySelector('.question-box').style.display = 'none';
+      document.querySelector('.result-box').style.display = 'block';
+    }
+
+    function restartQuiz() {
+      score = 0;
+      current = 0;
+      results = [];
+      shuffledQuiz = shuffleArray(quizData);
+      loadQuestion();
+    }
+
+    // 初期化
+    shuffledQuiz = shuffleArray(quizData);
+    loadQuestion();
+  </script>
+
+</body>
+</html>
