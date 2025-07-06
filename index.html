@@ -10,11 +10,8 @@
       padding: 30px;
       background: #f5f5f5;
     }
-    .question-box, .answer-box, .result-box {
+    .question-box, .result-box {
       margin-bottom: 20px;
-    }
-    .answer-box, .result-box {
-      display: none;
     }
     button {
       margin: 5px;
@@ -30,24 +27,19 @@
       padding: 8px;
     }
     #question {
-      font-size: 1.8em;        /* フォントサイズを大きく */
-      font-weight: bold;       /* 太字にする */
-      line-height: 1.6;        /* 行間を広げる */
-      background-color: #fff;  /* 背景を白にして読みやすく */
-      padding: 20px;           /* 内側の余白 */
-      margin-bottom: 20px;     /* 下に余白 */
-      border-radius: 10px;     /* 角を丸めて柔らかい印象に */
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* 薄い影をつけて浮き出させる */
-    }
-    #answer {
-      font-size: 1.6em;            /* フォントを大きく */
-      font-weight: bold;           /* 太字に */
-      color: #003366;              /* 濃い青系で視認性UP */
-      background-color: #e6f0ff;   /* 青系の淡い背景色 */
+      font-size: 1.8em;
+      font-weight: bold;
+      line-height: 1.6;
+      background-color: #fff;
       padding: 20px;
+      margin-bottom: 20px;
       border-radius: 10px;
-      margin-bottom: 15px;
-      box-shadow: 0 0 8px rgba(0,0,0,0.1);
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    #choices button {
+      display: block;
+      width: 60%;
+      margin: 10px auto;
     }
   </style>
 </head>
@@ -57,108 +49,47 @@
 
   <div class="question-box">
     <div id="question">問題を読み込み中...</div>
-    <button onclick="showAnswer()">答えを見る</button>
+    <div id="choices"></div>
   </div>
 
-  <div class="answer-box">
-    <div id="answer">答え</div>
-    <button onclick="submitAnswer(true)">正解</button>
-    <button onclick="submitAnswer(false)">不正解</button>
-  </div>
-
-  <div class="result-box" id="resultBox">
+  <div class="result-box" id="resultBox" style="display: none;">
     <h2>クイズ終了！</h2>
     <p id="scoreText"></p>
     <p id="commentText" style="font-weight: bold; font-size: 1.2em;"></p>
     <h3>解答一覧</h3>
     <table id="resultTable">
-      <tr><th>問題</th><th>答え</th><th>結果</th></tr>
+      <tr><th>問題</th><th>正解</th><th>あなたの答え</th><th>結果</th></tr>
     </table>
     <button onclick="restartQuiz()">最初に戻る</button>
   </div>
 
   <script>
     const quizData = [
-      { question: "インドの民族衣装で布を体に巻き付けるものは？", answer: "サリー" },
-      { question: "チリやメキシコで布の一部に穴をあけて頭からかぶる民族衣装は？", answer: "ポンチョ" },
-      { question: "インドネシアの腰布型民族衣装の一つは？", answer: "バティック" },
-      { question: "日本の伝統的な衣装で前開型でひもで締めるものは？", answer: "着物" },
-      { question: "イギリスの体形型民族衣装で洋服の元となったものは？", answer: "キルト" },
-      { question: "沖縄の鮮やかな色彩の伝統衣装は？", answer: "紅型" },
-      { question: "アイヌの木の皮から作られた糸を用いる伝統衣装は？", answer: "アットゥシ" },
-      { question: "金沢に伝わる染物は何という名前？", answer: "加賀友禅" },
-      { question: "京都に伝わる織物は何という名前？", answer: "西陣織" },
-      { question: "茨城や栃木に伝わる織物は何という名前？", answer: "結城紬" },
-      { question: "既婚者女性の第一礼服は何という名前？", answer: "黒留袖" },
-      { question: "未婚女性の第一礼服は何という名前？", answer: "振袖" },
-      { question: "男性の第一礼服は何という名前？", answer: "黒羽二重" },
-      { question: "既婚・未婚女性の準礼服は何という名前？", answer: "訪問着" },
-      { question: "男性の準礼服は何という名前？", answer: "色紋付" },
-      { question: "「夫婦のみ」「夫婦と未婚の子ども」などからなる家族は？", answer: "核家族" },
-      { question: "「核家族に祖父や祖母などが同居する家族」は？", answer: "拡大家族" },
-      { question: "祖父母と親子で構成される家族は？", answer: "三世代家族" },
-      { question: "婚姻届を出さずに共に暮らす形は？", answer: "事実婚" },
-      { question: "「Double income No Kids」の略で子どもを持たない共働き夫婦は？", answer: "DINKS" },
-      { question: "共働きで子育てをする夫婦は？", answer: "DEWKS" },
-      { question: "どこかに子どもがいて再婚して築かれる家族のことを何というか？", answer: "ステップファミリー" },
-      { question: "別々に暮らし、必要なときだけ会う共働き夫婦は？", answer: "オンデマンド婚" },
-      { question: "少子化の原因の一つで、結婚についての大きな要因は？", answer: "晩婚化" },
-      { question: "少子化の原因の一つで、両立できなかった主な理由は？", answer: "子育てと仕事の両立の困難さ" },
-      { question: "少子化の解決策で現状、主に有効な策と言われているものは？", answer: "育児休業の充実" },
-      { question: "男女が性別に関係なく能力を発揮する社会は何という？", answer: "ジェンダーレス" },
-      { question: "育児・介護のために休業できることを定めた制度は何という？", answer: "ジェンダーフリー" },
-      { question: "仕事と家庭生活のバランスを大切にする考えは何という？", answer: "ワーク・ライフ・バランス" },
-      { question: "近年、日本の世帯数はどうなっている？", answer: "増加している" },
-      { question: "最近増加している世帯形態は何世帯？", answer: "単身世帯" },
-      { question: "「夫婦と子どもだけで構成される家庭」は何という？", answer: "核家族" },
-      { question: "昭和55年に最も多かった世帯構造は何世帯という？", answer: "三世代世帯" },
-      { question: "平成19年に最も多かった世帯は何世帯という？", answer: "夫婦のみの世帯" },
-      { question: "ミシンの縫い始めは押さえをどうする？", answer: "上げる" },
-      { question: "ミシンの縫い始めははずみ車をどうする？", answer: "手前に回す" },
-      { question: "ミシン縫いの縫い終わりは針をどうする？", answer: "上げる" },
-      { question: "ミシンを運ぶときはどうする？", answer: "カバーを外さずに運ぶ" },
-      { question: "縫うとき以外はミシンのコントローラーから足をどうしてる？", answer: "足を外す" },
-      { question: "ミシンの針の下に手をいれていい？", answer: "手を入れない" },
-      { question: "布作品の制作で用具の扱いで、一番気をつけていることは？", answer: "安全" },
-      { question: "しつけ縫いは出来上がり線よりどのくらい外側に縫う？", answer: "0.1cm" },
-      { question: "しつけ縫いの縫い目はどのくらいで縫う？", answer: "1〜1.5cm" },
-      { question: "ミシン縫いはどの線の上で縫う？", answer: "できあがり線" },
-      { question: "縫い始めと終わりはどう縫ったら丈夫になる？", answer: "返し縫い" },
-      { question: "家庭の仕事で1番目に多い中学生の分担は？", answer: "食器を並べる、かたずける" },
-      { question: "家庭の仕事で2番目に多い中学生の分担は？", answer: "掃除をする" },
-      { question: "家庭の仕事で3番目に多い中学生の分担は？", answer: "買い物をする" },
-      { question: "家庭の仕事で4番目に多い中学生の分担は？", answer: "ゴミを出す" },
-      { question: "家族や地域で互いに助け合うことを何と言う？", answer: "協力・協働" },
-      { question: "家族で責任を持って仕事をすると何が生まれる？", answer: "信頼関係" },
-      { question: "家庭の仕事にはどんな種類がある？主なもの5つ答えて", answer: "食事作り・洗濯・掃除・子育て・介護" },
-      { question: "地域での防犯・防災で求められることは何？", answer: "協力" },
-      { question: "地域のルールを守り仕事を分担することは何と言う？", answer: "協働" },
-      { question: "無償で行う社会活動は何と言う？", answer: "ボランティア" },
-      { question: "多様な立場の人が共に生活することを何と言う？", answer: "共生" },
-      { question: "共生の基盤となるものは何？", answer: "コミュニケーションの機会" },
-      { question: "体を汚れやけがから守る衣服は？", answer: "エプロン" },
-      { question: "運動や作業しやすくする衣服は？", answer: "体操着" },
-      { question: "所属集団を表す衣服は？", answer: "学校の制服" },
-      { question: "職業を表す衣服は？", answer: "看護師の制服" },
-      { question: "暑さを調節する衣服は？", answer: "半袖のTシャツ" },
-      { question: "寒さを調節する衣服は？", answer: "コート" },
-      { question: "個性を表す衣服は？", answer: "ふだん着" },
-      { question: "社会の慣習で悲しみや祝いを表す衣服は？", answer: "礼服" },
-      { question: "体を清潔に保つ衣服は？", answer: "下着" },
-      { question: "TPOのOは？", answer: "Occasion" },
-      { question: "TPOのTは？", answer: "Time" },
-      { question: "TPOのPは？", answer: "Place" },
-      { question: "結婚式で避けるべき服装は？", answer: "全身真っ白・全身真っ黒" },
-      { question: "結婚式で好ましい服装は？", answer: "礼節をわきまえつつ、華やかな服装" },
-      { question: "衣服の組み合わせや、えりの有無や形などによって、周りの人にから変わるものは？", answer: "印象" },
-      { question: "同じ色でも印象の変わる素材の種類はどんな物がある？", answer: "ニット・絹・綿" },
-      { question: "自分が生まれもった色、肌や髪、瞳などと調和する色は何と言う？", answer: "パーソナルカラー" },
-      { question: "衣服を選ぶ際に重要なのは？", answer: "TPOを考える" },
-      { question: "地域の行事に参加する意味は？", answer: "地域とのつながりを深めるため" },
-      { question: "体操着は何のために着る？", answer: "運動しやすくするため" },
-      { question: "エプロンを着ける理由は？", answer: "汚れやけがから守るため" },
-      { question: "返し縫いをする理由は？", answer: "縫い目を丈夫にするため" },
-      { question: "家族の役割分担で大切なことは？", answer: "お互いに協力すること" },
+      {
+        question: "インドの民族衣装で布を体に巻き付けるものは？",
+        answer: "サリー",
+        choices: ["キルト", "サリー", "ポンチョ"]
+      },
+      {
+        question: "チリやメキシコで布の一部に穴をあけて頭からかぶる民族衣装は？",
+        answer: "ポンチョ",
+        choices: ["バティック", "着物", "ポンチョ"]
+      },
+      {
+        question: "インドネシアの腰布型民族衣装の一つは？",
+        answer: "バティック",
+        choices: ["バティック", "アットゥシ", "紅型"]
+      },
+      {
+        question: "京都に伝わる織物は何という名前？",
+        answer: "西陣織",
+        choices: ["加賀友禅", "結城紬", "西陣織"]
+      },
+      {
+        question: "「夫婦と子どもだけで構成される家庭」は何という？",
+        answer: "核家族",
+        choices: ["三世代家族", "核家族", "拡大家族"]
+      }
     ];
 
     let current = 0;
@@ -176,31 +107,38 @@
     }
 
     function loadQuestion() {
-      document.querySelector('.result-box').style.display = 'none';
-      document.querySelector('.answer-box').style.display = 'none';
-      document.querySelector('.question-box').style.display = 'block';
-      document.getElementById('question').textContent = shuffledQuiz[current].question;
+      const currentQuiz = shuffledQuiz[current];
+      document.getElementById('question').textContent = currentQuiz.question;
+
+      const choicesBox = document.getElementById('choices');
+      choicesBox.innerHTML = '';
+
+      currentQuiz.choices.forEach(choice => {
+        const button = document.createElement('button');
+        button.textContent = choice;
+        button.onclick = () => handleAnswer(choice);
+        choicesBox.appendChild(button);
+      });
     }
 
-    function showAnswer() {
-      document.querySelector('.answer-box').style.display = 'block';
-      document.getElementById('answer').textContent = "答え: " + shuffledQuiz[current].answer;
-    }
-
-    function submitAnswer(isCorrect) {
+    function handleAnswer(selected) {
+      const currentQuiz = shuffledQuiz[current];
+      const isCorrect = selected === currentQuiz.answer;
       if (isCorrect) score++;
+
       results.push({
-        question: shuffledQuiz[current].question,
-        answer: shuffledQuiz[current].answer,
+        question: currentQuiz.question,
+        answer: currentQuiz.answer,
+        selected: selected,
         correct: isCorrect
       });
+
       current++;
       if (current < shuffledQuiz.length) {
         loadQuestion();
       } else {
         showResult();
       }
-      document.querySelector('.answer-box').style.display = 'none';
     }
 
     function getJojoComment(scorePercent) {
@@ -223,30 +161,33 @@
       document.getElementById('commentText').innerHTML = getJojoComment(percent);
 
       const table = document.getElementById('resultTable');
-      table.innerHTML = '<tr><th>問題</th><th>答え</th><th>結果</th></tr>';
+      table.innerHTML = '<tr><th>問題</th><th>正解</th><th>あなたの答え</th><th>結果</th></tr>';
       results.forEach(result => {
         const row = table.insertRow();
         row.insertCell(0).textContent = result.question;
         row.insertCell(1).textContent = result.answer;
-        const resultCell = row.insertCell(2);
+        row.insertCell(2).textContent = result.selected;
+        const resultCell = row.insertCell(3);
         resultCell.textContent = result.correct ? "正解" : "不正解";
         resultCell.style.color = result.correct ? "green" : "red";
       });
 
       document.querySelector('.question-box').style.display = 'none';
-      document.querySelector('.result-box').style.display = 'block';
+      document.getElementById('resultBox').style.display = 'block';
     }
 
     function restartQuiz() {
       score = 0;
       current = 0;
       results = [];
-      shuffledQuiz = shuffleArray(quizData).slice(0, 30); // ← ここで30問だけ抽出
+      shuffledQuiz = shuffleArray(quizData).slice(0, 5); // 表示する問題数をここで調整
+      document.querySelector('.question-box').style.display = 'block';
+      document.getElementById('resultBox').style.display = 'none';
       loadQuestion();
     }
 
     // 初期化
-    shuffledQuiz = shuffleArray(quizData).slice(0, 30); // ← ここも同様に修正
+    shuffledQuiz = shuffleArray(quizData).slice(0, 5);
     loadQuestion();
   </script>
 
